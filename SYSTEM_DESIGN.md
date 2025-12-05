@@ -63,14 +63,16 @@ This document presents a production-ready architecture for a genomic sequence ca
 │  Service       │   │  Service       │   │  Service       │
 └───────┬────────┘   └───────┬────────┘   └───────┬────────┘
         │                     │                     │
+        │   (Application Layer: Logic, Dedup, Batching)
+        │                     │                     │
         └─────────────────────┼─────────────────────┘
                               │
         ┌─────────────────────┴─────────────────────┐
         │                                           │
 ┌───────▼────────┐                         ┌───────▼────────┐
 │   LanceDB      │                         │   Metadata     │
-│   (Vector +    │◄────────────────────────┤   Cache        │
-│    Data)       │                         │   (Redis)      │
+│ (Storage/Index)│◄────────────────────────┤   Cache        │
+│                │                         │   (Redis)      │
 └───────┬────────┘                         └────────────────┘
         │
         │ (S3-backed storage)
@@ -105,22 +107,24 @@ This document presents a production-ready architecture for a genomic sequence ca
 - **Zero-copy reads**: Direct S3 reads without ETL
 - **ACID transactions**: Consistent reads during writes
 
-#### 2. Embedding Strategy
+#### 2. Embedding & Representation Strategy
 
-**Model Selection**:
-- **Production**: ESM-2 (650M params) or ProtBERT for protein sequences
-- **DNA**: Custom k-mer embedding or fine-tuned DNABERT
-- **Dimension**: 384-768 (balance between accuracy and storage)
+**Model Selection & Biological Context**:
+-   **Protein**: **ESM-2 (650M params)** or **ProtBERT**. These are computationally intensive, making LanceDB's GPU-accelerated indexing critical for reasonable ingestion rates.
+-   **DNA**: **DNABERT** or **K-mer Sketching** (e.g., Mash/Sourmash style). K-mers offer a lightweight alternative to dense embeddings for initial filtering or when GPU resources are constrained.
+-   **Dimension**: 384-768 (balance between accuracy and storage).
 
 **Quantization**:
-- **Method**: Product Quantization (PQ) with 96 subvectors
-- **Compression**: 384 float32 → 96 uint8 (16x reduction)
-- **Accuracy**: 95%+ recall@10 maintained
+-   **Method**: Product Quantization (PQ) with 96 subvectors.
+-   **Compression**: 384 float32 → 96 uint8 (16x reduction).
+-   **Accuracy**: 95%+ recall@10 maintained.
 
-**Inference**:
-- **Batching**: Process 1000 sequences/batch
-- **GPU**: NVIDIA T4/A10 for 10k seq/sec throughput
-- **Caching**: Cache embeddings for frequently accessed sequences
+**Inference & Batching**:
+-   **Batching**: Process 1000 sequences/batch to saturate GPU utilization.
+-   **Hardware Dependency**: Throughput is heavily dependent on the embedding model.
+    -   *Synthetic/Lightweight*: ~15k seq/sec (measured in POC).
+    -   *ESM-2 (Large)*: Expect ~500-2,000 seq/sec per GPU.
+-   **Caching**: Cache embeddings for frequently accessed sequences to avoid re-inference.
 
 #### 3. Indexing Strategy
 
@@ -206,16 +210,11 @@ Total Partitions: 30 (for 300M)
    - Store as bitsets for fast intersection
    - Update incrementally
 
-**Query Examples**:
-```sql
--- Find all descendants of a sequence
-SELECT * WHERE lineage_path LIKE 'root/A/B.1/%'
+**Implementation Roadmap**:
 
--- Find common ancestor
-SELECT * WHERE id IN (
-    SELECT INTERSECT(ancestors(seq1), ancestors(seq2))
-)
-```
+*   **v1 (Current POC)**: **Data Model Support**. The schema supports `parent_ids` and `parent_probabilities`, but the heavy lifting of phylogenetic inference (e.g., Bayesian inference pipelines) is external.
+*   **v2**: **Integration**. Populate `parent_probabilities` from upstream pipelines and implement recursive common table expressions (CTEs) or iterative queries for shallow ancestry.
+*   **v3**: **Graph Offloading**. Sync topology to a dedicated graph DB (Neo4j) for deep, complex lineage exploration if traversal depth > 5-10 levels.
 
 ## Scalability Analysis
 
@@ -248,12 +247,13 @@ Cost: $0.75/hour on-demand
 Daily ingestion (1M new): 100 seconds = $0.02
 ```
 
-**Search** (p99 < 10ms):
+**Search** (p99 < 10ms target):
 ```
 CPU: 16-core server
 RAM: 32 GB (for index cache)
-Concurrent queries: 1000 QPS
+Concurrent queries: 1000 QPS (estimated)
 Cost: ~$200/month (reserved instance)
+Note: Real-world latency depends on embedding dimension and concurrent load.
 ```
 
 ### Horizontal Scaling Strategy

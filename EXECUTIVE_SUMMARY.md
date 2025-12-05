@@ -30,6 +30,10 @@ I architected a solution using **LanceDB** to solve the core scalability and cos
 - **Storage**: Cheap object storage for the bulk of data.
 - **Compute**: Stateless query nodes that scale independently.
 
+### 4. Biology-Native Design
+**Context**: Genomic pipelines often use heavy models (ESM-2) or lightweight sketching (K-mers).
+**Solution**: The architecture separates the **Application Layer** (handling deduplication, normalization, and model inference) from the **Storage Layer** (LanceDB). This allows plugging in any embedding strategy—from ProtBERT to MinHash sketches—without changing the core catalog.
+
 ## Proof of Concept & Validation
 
 I built a working POC to validate these architectural decisions, including a full ingestion pipeline, hybrid search, and a web UI.
@@ -38,9 +42,11 @@ I built a working POC to validate these architectural decisions, including a ful
 
 | Metric | Result | Target | Status |
 |--------|--------|--------|--------|
-| **Ingestion Throughput** | ~15,000 seq/sec | 10,000+ | Met |
-| **Search Latency (p99)** | 4-5 ms | <10 ms | Met |
+| **Ingestion Throughput** | ~15,000 seq/sec* | 10,000+ | Met |
+| **Search Latency (p99)** | 4-5 ms* | <10 ms | Met |
 | **Export Time (10k)** | <0.1s | <1s | Met |
+
+*\*Note: Measured with synthetic data. Production throughput depends on embedding model complexity (e.g., ESM-2) and hardware.*
 
 **Scalability Projections (300M Sequences):**
 

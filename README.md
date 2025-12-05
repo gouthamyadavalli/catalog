@@ -22,7 +22,7 @@ This POC demonstrates a complete architecture for a genomic catalog system, addr
 - **Metadata Filtering**: SQL-like queries on dynamic metadata
 - **Hybrid Search**: Combine vector similarity + metadata filters
 - **Bulk Export**: Zero-copy export to Parquet format
-- **Lineage Tracking**: Store and query phylogenetic relationships
+- **Lineage Tracking**: Data model support for phylogenetic relationships (v1)
 
 ### Scale & Optimization
 - **IVF-PQ Indexing**: 16x compression with <5% recall loss
@@ -42,10 +42,12 @@ This POC demonstrates a complete architecture for a genomic catalog system, addr
 
 | Metric | Performance | Target | Status |
 |--------|-------------|--------|--------|
-| **Ingestion Throughput** | ~15,000 seq/sec | 10,000+ | Met |
-| **Search Latency (p99)** | 4-5 ms | <10 ms | Met |
+| **Ingestion Throughput** | ~15,000 seq/sec* | 10,000+ | Met |
+| **Search Latency (p99)** | 4-5 ms* | <10 ms | Met |
 | **Export Time (10k)** | < 0.1s | <1s | Met |
 | **Index Build Time** | ~12s | <1 min | Met |
+
+*\*Note: Benchmarks run with synthetic data and lightweight embeddings. Real-world throughput will vary based on the embedding model (e.g., ESM-2 vs. K-mers) and GPU hardware.*
 
 **Scalability Projections (300M Sequences)**:
 - **Storage**: ~83 GB (Optimized) vs ~500 GB (Raw)
