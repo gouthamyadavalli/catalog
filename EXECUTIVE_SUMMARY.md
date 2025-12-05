@@ -38,9 +38,9 @@ I built a working POC to validate these architectural decisions, including a ful
 
 | Metric | Result | Target | Status |
 |--------|--------|--------|--------|
-| **Ingestion Throughput** | ~15,000 seq/sec | 10,000+ | ✅ Met |
-| **Search Latency (p99)** | 4-5 ms | <10 ms | ✅ Met |
-| **Export Time (10k)** | <0.1s | <1s | ✅ Met |
+| **Ingestion Throughput** | ~15,000 seq/sec | 10,000+ | Met |
+| **Search Latency (p99)** | 4-5 ms | <10 ms | Met |
+| **Export Time (10k)** | <0.1s | <1s | Met |
 
 **Scalability Projections (300M Sequences):**
 

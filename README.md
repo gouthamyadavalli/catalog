@@ -17,24 +17,24 @@ This POC demonstrates a complete architecture for a genomic catalog system, addr
 ## 🎯 Key Features
 
 ### Core Capabilities
-- ✅ **FASTA/FASTQ Ingestion**: Parse and store genomic sequences
-- ✅ **Vector Search**: Similarity search using embeddings (10k+ seq/sec)
-- ✅ **Metadata Filtering**: SQL-like queries on dynamic metadata
-- ✅ **Hybrid Search**: Combine vector similarity + metadata filters
-- ✅ **Bulk Export**: Zero-copy export to Parquet format
-- ✅ **Lineage Tracking**: Store and query phylogenetic relationships
+- **FASTA/FASTQ Ingestion**: Parse and store genomic sequences
+- **Vector Search**: Similarity search using embeddings (10k+ seq/sec)
+- **Metadata Filtering**: SQL-like queries on dynamic metadata
+- **Hybrid Search**: Combine vector similarity + metadata filters
+- **Bulk Export**: Zero-copy export to Parquet format
+- **Lineage Tracking**: Store and query phylogenetic relationships
 
 ### Scale & Optimization
-- ✅ **IVF-PQ Indexing**: 16x compression with <5% recall loss
-- ✅ **Custom Embeddings**: Pluggable model architecture
-- ✅ **Append-Only Updates**: No reindexing on incremental updates
-- ✅ **S3-Backed Storage**: Unlimited scale with object storage
+- **IVF-PQ Indexing**: 16x compression with <5% recall loss
+- **Custom Embeddings**: Pluggable model architecture
+- **Append-Only Updates**: No reindexing on incremental updates
+- **S3-Backed Storage**: Unlimited scale with object storage
 
 ### User Interface
-- ✅ **Modern Web UI**: Clean, responsive interface
-- ✅ **Search Interface**: Query by sequence or metadata
-- ✅ **Upload Interface**: Drag-and-drop FASTA upload
-- ✅ **Export Interface**: Bulk download to Parquet
+- **Modern Web UI**: Clean, responsive interface
+- **Search Interface**: Query by sequence or metadata
+- **Upload Interface**: Drag-and-drop FASTA upload
+- **Export Interface**: Bulk download to Parquet
 
 ## 📊 Performance Benchmarks
 
@@ -42,10 +42,10 @@ This POC demonstrates a complete architecture for a genomic catalog system, addr
 
 | Metric | Performance | Target | Status |
 |--------|-------------|--------|--------|
-| **Ingestion Throughput** | ~15,000 seq/sec | 10,000+ | ✅ Met |
-| **Search Latency (p99)** | 4-5 ms | <10 ms | ✅ Met |
-| **Export Time (10k)** | < 0.1s | <1s | ✅ Met |
-| **Index Build Time** | ~12s | <1 min | ✅ Met |
+| **Ingestion Throughput** | ~15,000 seq/sec | 10,000+ | Met |
+| **Search Latency (p99)** | 4-5 ms | <10 ms | Met |
+| **Export Time (10k)** | < 0.1s | <1s | Met |
+| **Index Build Time** | ~12s | <1 min | Met |
 
 **Scalability Projections (300M Sequences)**:
 - **Storage**: ~83 GB (Optimized) vs ~500 GB (Raw)
@@ -66,11 +66,11 @@ This POC demonstrates a complete architecture for a genomic catalog system, addr
 
 | Feature | LanceDB | Elasticsearch |
 |---------|---------|---------------|
-| **Schema Evolution** | ✅ Native (Schema-on-Read) | ❌ Requires Full Reindex |
-| **Vector Search** | ✅ Native IVF-PQ | ⚠️ Plugin-based, Memory Heavy |
-| **Storage Format** | ✅ Columnar (Arrow) | ❌ Row-based (JSON) |
-| **S3 Support** | ✅ Native (Decoupled) | ⚠️ Snapshots Only |
-| **Cost (300M)** | ✅ ~$300/month | ❌ ~$5,000/month |
+| **Schema Evolution** | Native (Schema-on-Read) | ❌ Requires Full Reindex |
+| **Vector Search** | Native IVF-PQ | ⚠️ Plugin-based, Memory Heavy |
+| **Storage Format** | Columnar (Arrow) | ❌ Row-based (JSON) |
+| **S3 Support** | Native (Decoupled) | ⚠️ Snapshots Only |
+| **Cost (300M)** | ~$300/month | ❌ ~$5,000/month |
 
 ## 🚀 Quick Start
 
@@ -117,7 +117,6 @@ python benchmark.py --count 300000000 --estimate
 
 1.  **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)**: **Start here**. The core narrative explaining the "why" and "how".
 2.  **[SYSTEM_DESIGN.md](SYSTEM_DESIGN.md)**: Deep technical dive into production architecture and scaling strategy.
-3.  **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)**: Detailed breakdown of what is implemented vs. designed.
 
 ## 🔬 Use Cases
 
@@ -146,6 +145,3 @@ curl -X POST http://localhost:8000/export/parquet \
   --output export.parquet
 ```
 
-## 🤝 Contact
-
-Built by Goutham as a system design project.
