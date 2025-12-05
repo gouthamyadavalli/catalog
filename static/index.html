@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genomic Catalog</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="currentColor" stroke-width="2" fill="none" />
+                    <circle cx="16" cy="16" r="4" fill="currentColor" />
+                </svg>
+                <h1>Genomic Catalog</h1>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <span class="stat-value" id="totalSequences">0</span>
+                    <span class="stat-label">Total Sequences</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="tabs">
+                <button class="tab active" data-tab="search">Search</button>
+                <button class="tab" data-tab="upload">Upload</button>
+                <button class="tab" data-tab="export">Export</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div class="tab-content active" id="search">
+                <div class="search-section">
+                    <h2>Search Genomic Sequences</h2>
+                    <div class="search-form">
+                        <div class="form-group">
+                            <label>Search Type</label>
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="searchType" value="sequence" checked>
+                                    Sequence Similarity
+                                </label>
+                                <label>
+                                    <input type="radio" name="searchType" value="metadata">
+                                    Metadata Filter
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="sequenceInput">
+                            <label>Query Sequence</label>
+                            <textarea id="querySequence"
+                                placeholder="Enter DNA sequence (e.g., ATGCGTACGTAGC...)"></textarea>
+                        </div>
+
+                        <div class="form-group hidden" id="metadataInput">
+                            <label>Metadata Filter</label>
+                            <input type="text" id="metadataFilter" placeholder="e.g., metadata.organism LIKE '%human%'">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Result Limit</label>
+                            <input type="number" id="resultLimit" value="10" min="1" max="1000">
+                        </div>
+
+                        <button class="btn btn-primary" id="searchBtn">
+                            <span>Search</span>
+                        </button>
+                    </div>
+
+                    <div class="results" id="searchResults">
+                        <div class="results-header">
+                            <h3>Results</h3>
+                            <span class="result-count" id="resultCount">0 results</span>
+                        </div>
+                        <div class="results-list" id="resultsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Tab -->
+            <div class="tab-content" id="upload">
+                <div class="upload-section">
+                    <h2>Upload FASTA File</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                        </svg>
+                        <p>Drag & drop FASTA file here or click to browse</p>
+                        <input type="file" id="fileInput" accept=".fasta,.fa,.fastq,.fq" hidden>
+                        <button class="btn btn-secondary" id="browseBtn">Browse Files</button>
+                    </div>
+                    <div class="upload-progress hidden" id="uploadProgress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">Uploading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Tab -->
+            <div class="tab-content" id="export">
+                <div class="export-section">
+                    <h2>Export Search Results</h2>
+                    <p class="description">Export filtered genomic sequences to Parquet format for analysis.</p>
+
+                    <div class="export-form">
+                        <div class="form-group">
+                            <label>Export Query (Optional)</label>
+                            <textarea id="exportSequence"
+                                placeholder="Enter sequence to search before export (leave empty for all)"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Metadata Filter (Optional)</label>
+                            <input type="text" id="exportFilter" placeholder="e.g., metadata.length > 100">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Export Limit</label>
+                            <input type="number" id="exportLimit" value="10000" min="1" max="1000000">
+                        </div>
+
+                        <button class="btn btn-primary" id="exportBtn">
+                            <span>Export to Parquet</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
