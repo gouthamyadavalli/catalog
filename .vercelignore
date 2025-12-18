@@ -1,0 +1,17 @@
+# Vercel ignore file
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+lancedb_data/
+*.parquet
+.env
+.env.local
+*.md
+!README.md
+docs/
+scripts/
+benchmark.py
+
