@@ -1,47 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    }
-  ],
   "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/styles.css",
-      "dest": "/public/styles.css"
-    },
-    {
-      "src": "/app.js",
-      "dest": "/public/app.js"
-    },
-    {
-      "src": "/(favicon.ico|robots.txt)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
-    }
-  ],
-  "functions": {
-    "api/index.py": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
-  "env": {
-    "LANCEDB_PATH": "/tmp/lancedb_data"
-  }
+    { "src": "/stats", "dest": "/api/index.py" },
+    { "src": "/trees(.*)", "dest": "/api/index.py" },
+    { "src": "/static/(.*)", "dest": "/public/$1" },
+    { "src": "/(index\\.html|styles\\.css|app\\.js)", "dest": "/public/$1" },
+    { "src": "^/$", "dest": "/public/index.html" }
+  ]
 }

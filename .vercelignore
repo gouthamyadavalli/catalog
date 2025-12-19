@@ -6,7 +6,9 @@ __pycache__
 .pytest_cache
 .mypy_cache
 lancedb_data/
+data/
 *.parquet
+*.lance
 .env
 .env.local
 *.md
@@ -14,4 +16,6 @@ lancedb_data/
 docs/
 scripts/
 benchmark.py
+node_modules/
+pyproject.toml
 

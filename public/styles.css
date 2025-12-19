@@ -1645,3 +1645,275 @@ h2 {
         max-width: 100%;
     }
 }
+
+/* ============== Quick Start Guide ============== */
+.quick-start-guide {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, #f0fdf4 100%);
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    box-shadow: var(--shadow), 0 0 20px rgba(13, 148, 136, 0.1);
+}
+
+.guide-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.guide-icon {
+    font-size: 1.5rem;
+}
+
+.guide-header h3 {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.guide-dismiss {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.guide-dismiss:hover {
+    color: var(--text);
+}
+
+.guide-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.guide-step {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.step-number {
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-content strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.step-content p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.guide-example {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.example-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.example-code {
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 0.85rem;
+    background: var(--bg-secondary);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--primary-dark);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.example-code:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Scroll highlight animation */
+@keyframes highlightSection {
+    0% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(13, 148, 136, 0.1); }
+    100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+}
+
+.highlight-section {
+    animation: highlightSection 1s ease-out;
+}
+
+/* Toast improvements */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    padding: 0.875rem 1.25rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideIn 0.3s ease-out;
+    border-left: 4px solid var(--primary);
+}
+
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+.toast.info { border-left-color: var(--primary); }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ============== Section Header Row ============== */
+.section-header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.section-header-row h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.tree-count-badge {
+    background: var(--primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* ============== Loading State ============== */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+}
+
+.spinner.small {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+    margin-bottom: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============== Add Tree Section (Collapsible) ============== */
+.add-tree-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+}
+
+.add-tree-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text);
+    user-select: none;
+    list-style: none;
+}
+
+.add-tree-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.add-tree-toggle::before {
+    content: '▸';
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+}
+
+.add-tree-section[open] .add-tree-toggle::before {
+    transform: rotate(90deg);
+}
+
+.add-tree-toggle:hover {
+    background: var(--bg-tertiary);
+    border-radius: 12px 12px 0 0;
+}
+
+.add-tree-section .tree-form {
+    padding: 0 1.25rem 1.25rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.add-tree-section .tree-form h3 {
+    display: none;
+}
+
+/* ============== Section Divider ============== */
+.section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+}

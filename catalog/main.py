@@ -31,16 +31,29 @@ from .tree_search import (
 
 app = FastAPI(title="Genomic Catalog POC")
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 @app.on_event("startup")
 def on_startup():
     init_db()
 
+# Serve static files at root level (same as Vercel)
 @app.get("/")
 async def root():
-    return FileResponse("static/index.html")
+    return FileResponse("public/index.html")
+
+@app.get("/index.html")
+async def index_html():
+    return FileResponse("public/index.html")
+
+@app.get("/styles.css")
+async def styles_css():
+    return FileResponse("public/styles.css", media_type="text/css")
+
+@app.get("/app.js")
+async def app_js():
+    return FileResponse("public/app.js", media_type="application/javascript")
+
+# Also mount at /static for backwards compatibility
+app.mount("/static", StaticFiles(directory="public"), name="static")
 
 @app.post("/ingest/fasta")
 async def ingest_fasta_endpoint(file: UploadFile = File(...)):

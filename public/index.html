@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genomic Catalog - Phylogenetic Tree Search</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'><path d='M18 4L32 12V24L18 32L4 24V12L18 4Z' stroke='%232dd4bf' stroke-width='2.5' fill='none'/><circle cx='18' cy='18' r='5' fill='%232dd4bf'/></svg>">
 </head>
 
@@ -46,128 +46,61 @@
                     <h2>Phylogenetic Trees</h2>
                     <p class="section-subtitle">Explore evolutionary relationships and search for similar tree topologies</p>
 
-                    <!-- Tree Search Section -->
-                    <div class="tree-search-section">
-                        <h3>Search Similar Trees</h3>
-                        <p class="section-hint">Find trees with similar evolutionary topology</p>
-                        <div class="tree-search-form">
-                            <div class="form-group">
-                                <label>Search by Newick Pattern</label>
-                                <textarea id="searchNewickInput" placeholder="((A,B),(C,D)); - Find trees with similar branching pattern"></textarea>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Result Limit</label>
-                                    <input type="number" id="treeSearchLimit" value="5" min="1" max="50">
+                    <!-- Quick Start Guide -->
+                    <div class="quick-start-guide" id="quickStartGuide">
+                        <div class="guide-header">
+                            <span class="guide-icon">🚀</span>
+                            <h3>Quick Start Guide</h3>
+                            <button class="guide-dismiss" id="dismissGuide" title="Dismiss">×</button>
+                        </div>
+                        <div class="guide-steps">
+                            <div class="guide-step">
+                                <span class="step-number">1</span>
+                                <div class="step-content">
+                                    <strong>Browse Trees</strong>
+                                    <p>Click any tree card below to visualize its structure</p>
                                 </div>
                             </div>
-                            <button class="btn btn-accent" id="searchTreesBtn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="11" cy="11" r="8"/>
-                                    <path d="M21 21l-4.35-4.35"/>
-                                </svg>
-                                <span>Search Trees</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Search Results -->
-                        <div class="tree-search-results hidden" id="treeSearchResults">
-                            <div class="search-results-header">
-                                <h4>Similar Trees</h4>
-                                <span class="search-results-count" id="treeSearchCount">0 results</span>
+                            <div class="guide-step">
+                                <span class="step-number">2</span>
+                                <div class="step-content">
+                                    <strong>Select Subtrees</strong>
+                                    <p>Toggle "Selection Mode" and click a node to select a subtree for search</p>
+                                </div>
                             </div>
-                            <div class="search-results-list" id="treeSearchList"></div>
+                            <div class="guide-step">
+                                <span class="step-number">3</span>
+                                <div class="step-content">
+                                    <strong>Find Similar Trees</strong>
+                                    <p>Enter a Newick pattern or use a selected subtree to find similar topologies</p>
+                                </div>
+                            </div>
+                            <div class="guide-step">
+                                <span class="step-number">4</span>
+                                <div class="step-content">
+                                    <strong>Compare Results</strong>
+                                    <p>Click a search result to see side-by-side comparison with explanations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="guide-example">
+                            <span class="example-label">💡 Try this Newick:</span>
+                            <code class="example-code" id="exampleNewick">((Human,Chimp),Gorilla);</code>
+                            <button class="btn btn-sm btn-secondary" id="tryExampleBtn">Try it</button>
                         </div>
                     </div>
 
-                    <!-- Side-by-Side Comparison View -->
-                    <div class="comparison-view hidden" id="comparisonView">
-                        <div class="comparison-header-bar">
-                            <h3>Tree Comparison</h3>
-                            <button class="btn btn-sm btn-secondary" id="closeComparisonBtn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 6L6 18M6 6l12 12"/>
-                                </svg>
-                                Close
-                            </button>
-                        </div>
-                        
-                        <div class="comparison-container">
-                            <!-- Query Tree Panel -->
-                            <div class="comparison-panel query-panel">
-                                <div class="panel-header">
-                                    <span class="panel-label">Query Tree</span>
-                                    <span class="panel-badge query">Your Search</span>
-                                </div>
-                                <div class="panel-stats" id="queryTreeStats"></div>
-                                <svg class="comparison-tree-svg" id="queryTreeSvg"></svg>
-                            </div>
-                            
-                            <!-- Similarity Info Panel -->
-                            <div class="comparison-info-panel">
-                                <div class="similarity-badge" id="comparisonScore">
-                                    <span class="score-value">0%</span>
-                                    <span class="score-label">Match</span>
-                                </div>
-                                <div class="comparison-explanation" id="comparisonExplanation">
-                                    <!-- Explanation content will be injected here -->
-                                </div>
-                            </div>
-                            
-                            <!-- Result Tree Panel -->
-                            <div class="comparison-panel result-panel">
-                                <div class="panel-header">
-                                    <span class="panel-label" id="resultTreeName">Result Tree</span>
-                                    <span class="panel-badge result">Database</span>
-                                </div>
-                                <div class="panel-stats" id="resultTreeStats"></div>
-                                <svg class="comparison-tree-svg" id="resultTreeSvg"></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="section-divider"></div>
-
-                    <!-- Add Tree Section -->
-                    <div class="tree-form">
-                        <h3>Add New Tree</h3>
-                        <p class="section-hint">Upload a phylogenetic tree in Newick format</p>
-                        <div class="form-group">
-                            <label>Newick Format</label>
-                            <textarea id="newickInput" placeholder="(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);"></textarea>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Tree Name</label>
-                                <input type="text" id="treeName" placeholder="My phylogenetic tree">
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 0.75rem;">
-                            <button class="btn btn-primary" id="ingestTreeBtn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 5v14M5 12h14"/>
-                                </svg>
-                                <span>Add Tree</span>
-                            </button>
-                            <button class="btn btn-secondary" id="loadTreesBtn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                                </svg>
-                                <span>Refresh</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Tree List -->
+                    <!-- Available Trees (Primary Content) -->
                     <div id="treeListContainer">
-                        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Available Trees</h3>
+                        <div class="section-header-row">
+                            <h3>📚 Available Trees</h3>
+                            <span class="tree-count-badge" id="treeCountBadge">Loading...</span>
+                        </div>
+                        <p class="section-hint">Click any tree to visualize and explore its structure</p>
                         <div class="tree-list" id="treeList">
-                            <div class="empty-state">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M12 3v18M3 12h18M7 7l10 10M17 7L7 17"/>
-                                </svg>
-                                <h3>No trees yet</h3>
-                                <p>Add a tree using the Newick format above</p>
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <p>Loading trees...</p>
                             </div>
                         </div>
                     </div>
@@ -262,6 +195,122 @@
                             <p class="search-subtree-hint">Find trees with similar branching structure to this subtree</p>
                         </div>
                     </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Tree Search Section -->
+                    <div class="tree-search-section" id="treeSearchSection">
+                        <h3>🔍 Search Similar Trees</h3>
+                        <p class="section-hint">Find trees with similar evolutionary topology using Newick format</p>
+                        <div class="tree-search-form">
+                            <div class="form-group">
+                                <label>Search by Newick Pattern</label>
+                                <textarea id="searchNewickInput" placeholder="((A,B),(C,D)); - Find trees with similar branching pattern"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Result Limit</label>
+                                    <input type="number" id="treeSearchLimit" value="5" min="1" max="50">
+                                </div>
+                            </div>
+                            <button class="btn btn-accent" id="searchTreesBtn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <path d="M21 21l-4.35-4.35"/>
+                                </svg>
+                                <span>Search Trees</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Search Results -->
+                        <div class="tree-search-results hidden" id="treeSearchResults">
+                            <div class="search-results-header">
+                                <h4>Similar Trees</h4>
+                                <span class="search-results-count" id="treeSearchCount">0 results</span>
+                            </div>
+                            <div class="search-results-list" id="treeSearchList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Side-by-Side Comparison View -->
+                    <div class="comparison-view hidden" id="comparisonView">
+                        <div class="comparison-header-bar">
+                            <h3>Tree Comparison</h3>
+                            <button class="btn btn-sm btn-secondary" id="closeComparisonBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                </svg>
+                                Close
+                            </button>
+                        </div>
+                        
+                        <div class="comparison-container">
+                            <div class="comparison-panel query-panel">
+                                <div class="panel-header">
+                                    <span class="panel-label">Query Tree</span>
+                                    <span class="panel-badge query">Your Search</span>
+                                </div>
+                                <div class="panel-stats" id="queryTreeStats"></div>
+                                <svg class="comparison-tree-svg" id="queryTreeSvg"></svg>
+                            </div>
+                            
+                            <div class="comparison-info-panel">
+                                <div class="similarity-badge" id="comparisonScore">
+                                    <span class="score-value">0%</span>
+                                    <span class="score-label">Match</span>
+                                </div>
+                                <div class="comparison-explanation" id="comparisonExplanation"></div>
+                            </div>
+                            
+                            <div class="comparison-panel result-panel">
+                                <div class="panel-header">
+                                    <span class="panel-label" id="resultTreeName">Result Tree</span>
+                                    <span class="panel-badge result">Database</span>
+                                </div>
+                                <div class="panel-stats" id="resultTreeStats"></div>
+                                <svg class="comparison-tree-svg" id="resultTreeSvg"></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Add New Tree (Collapsible) -->
+                    <details class="add-tree-section">
+                        <summary class="add-tree-toggle">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                            <span>Add New Tree</span>
+                        </summary>
+                        <div class="tree-form">
+                            <p class="section-hint">Upload a phylogenetic tree in Newick format</p>
+                            <div class="form-group">
+                                <label>Newick Format</label>
+                                <textarea id="newickInput" placeholder="(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Tree Name</label>
+                                    <input type="text" id="treeName" placeholder="My phylogenetic tree">
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button class="btn btn-primary" id="ingestTreeBtn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 5v14M5 12h14"/>
+                                    </svg>
+                                    <span>Add Tree</span>
+                                </button>
+                                <button class="btn btn-secondary" id="loadTreesBtn">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                                    </svg>
+                                    <span>Refresh List</span>
+                                </button>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </div>
 
@@ -390,7 +439,7 @@
         </main>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/app.js"></script>
 </body>
 
 </html>

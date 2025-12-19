@@ -1,11 +1,7 @@
 #!/bin/bash
 # Deployment script for Vercel
 
-echo "🚀 Preparing for Vercel deployment..."
-
-# Ensure public folder is synced with static
-echo "📁 Syncing static files..."
-cp -r static/* public/
+echo "🚀 Deploying to Vercel..."
 
 # Check if vercel CLI is installed
 if ! command -v vercel &> /dev/null; then
@@ -13,8 +9,6 @@ if ! command -v vercel &> /dev/null; then
     exit 1
 fi
 
-echo "📦 Deploying to Vercel..."
 vercel --prod
 
 echo "✅ Deployment complete!"
-

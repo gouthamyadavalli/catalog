@@ -330,10 +330,26 @@ document.getElementById('searchTreesBtn').addEventListener('click', async () => 
 let lastSearchNewick = '';
 let lastSearchResults = [];
 
-function displayTreeSearchResults(results) {
+function displayTreeSearchResults(apiResponse) {
     const container = document.getElementById('treeSearchResults');
     const list = document.getElementById('treeSearchList');
     const count = document.getElementById('treeSearchCount');
+    
+    // Normalize API response - handle both { results: [...] } and [...] formats
+    const resultsArray = apiResponse.results || apiResponse;
+    
+    // Normalize result format - API returns { tree_id, tree_name, similarity, num_leaves }
+    // Convert to { tree: { id, name, num_leaves }, score } format
+    const results = resultsArray.map(r => ({
+        tree: {
+            id: r.tree_id || r.tree?.id,
+            name: r.tree_name || r.tree?.name,
+            num_nodes: r.num_nodes || r.tree?.num_nodes || '-',
+            num_leaves: r.num_leaves || r.tree?.num_leaves,
+            newick: r.newick || r.tree?.newick
+        },
+        score: r.similarity !== undefined ? r.similarity : r.score
+    }));
     
     // Store the search newick and results for comparisons
     lastSearchNewick = document.getElementById('searchNewickInput').value.trim();
@@ -393,6 +409,13 @@ function displayTreeSearchResults(results) {
             showComparisonView(treeId, score, lastSearchResults[resultIdx]);
         });
     });
+    
+    // Auto-scroll to results with highlight
+    setTimeout(() => {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        container.classList.add('highlight-section');
+        setTimeout(() => container.classList.remove('highlight-section'), 1000);
+    }, 100);
 }
 
 async function showExplanation(treeId, treeName) {
@@ -573,10 +596,34 @@ async function showComparisonView(resultTreeId, score, resultData) {
     
     // Fetch the result tree structure and render it
     try {
-        const response = await fetch(`${API_BASE}/trees/${resultTreeId}/structure`);
-        if (response.ok) {
-            const treeStructure = await response.json();
-            renderComparisonTreeFromStructure(resultTreeSvg, treeStructure.root, 'result');
+        const [nodesResponse, rootResponse] = await Promise.all([
+            fetch(`${API_BASE}/trees/${resultTreeId}/nodes`),
+            fetch(`${API_BASE}/trees/${resultTreeId}/root`)
+        ]);
+        
+        if (nodesResponse.ok && rootResponse.ok) {
+            const nodesData = await nodesResponse.json();
+            const rootNode = await rootResponse.json();
+            
+            // Build tree structure
+            const nodesMap = {};
+            (nodesData.nodes || nodesData).forEach(node => {
+                nodesMap[node.id] = { ...node, children: [] };
+            });
+            
+            Object.values(nodesMap).forEach(node => {
+                if (node.left_child_id && nodesMap[node.left_child_id]) {
+                    node.children.push(nodesMap[node.left_child_id]);
+                }
+                if (node.right_child_id && nodesMap[node.right_child_id]) {
+                    node.children.push(nodesMap[node.right_child_id]);
+                }
+            });
+            
+            const root = nodesMap[rootNode.id] || Object.values(nodesMap).find(n => !n.parent_id);
+            if (root) {
+                renderComparisonTreeFromStructure(resultTreeSvg, root, 'result');
+            }
         }
     } catch (error) {
         console.error('Failed to load result tree:', error);
@@ -616,18 +663,31 @@ async function showComparisonView(resultTreeId, score, resultData) {
 }
 
 function renderCompactExplanation(explanation) {
-    const featureScores = explanation.feature_scores;
-    const reasons = explanation.reasons;
+    // Handle API format: { overall_similarity, feature_breakdown: [{feature, similarity, weight}], insights: [] }
+    const featureBreakdown = explanation.feature_breakdown || [];
+    const insights = explanation.insights || [];
+    const overallSim = explanation.overall_similarity || 0;
+    
+    // Feature icons mapping
+    const featureIcons = {
+        'Basic Statistics': '📊',
+        'Depth Distribution': '📏',
+        'Subtree Sizes': '🌲',
+        'Split Patterns': '🔀',
+        'Topology': '🧬',
+        'Branch Lengths': '📐'
+    };
     
     // Build compact feature bars
-    const featureBars = Object.entries(featureScores).map(([key, data]) => {
-        const score = data.score;
-        const percent = Math.round(score * 100);
-        const barClass = score > 0.7 ? 'high' : score > 0.4 ? 'medium' : 'low';
+    const featureBars = featureBreakdown.map(item => {
+        const percent = Math.round(item.similarity || 0);
+        const barClass = percent > 70 ? 'high' : percent > 40 ? 'medium' : 'low';
+        const icon = featureIcons[item.feature] || '📈';
         
         return `
             <div class="feature-row">
-                <span class="feature-icon">${data.icon}</span>
+                <span class="feature-icon">${icon}</span>
+                <span class="feature-name" style="font-size: 0.7rem; width: 80px;">${item.feature}</span>
                 <div class="feature-bar-container">
                     <div class="feature-bar ${barClass}" style="width: ${percent}%"></div>
                 </div>
@@ -636,22 +696,21 @@ function renderCompactExplanation(explanation) {
         `;
     }).join('');
     
-    // Build compact reasons
-    const reasonsHtml = reasons.slice(0, 3).map(reason => {
-        const icon = reason.type === 'match' ? '✓' : reason.type === 'similar' ? '≈' : reason.type === 'summary' ? '💡' : '≠';
-        const className = reason.type === 'match' ? 'match' : reason.type === 'similar' ? 'similar' : reason.type === 'summary' ? 'summary' : 'different';
-        
-        return `
-            <div class="reason-item ${className}" style="font-size: 0.75rem; padding: 0.25rem 0;">
-                <span class="reason-icon">${icon}</span>
-                <span class="reason-text">${reason.text}</span>
-            </div>
-        `;
-    }).join('');
+    // Build insights as reasons
+    const reasonsHtml = insights.map(insight => `
+        <div class="reason-item summary" style="font-size: 0.75rem; padding: 0.25rem 0;">
+            <span class="reason-icon">💡</span>
+            <span class="reason-text">${insight}</span>
+        </div>
+    `).join('');
     
     return `
+        <div class="overall-score" style="text-align: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.5rem; font-weight: 600; color: var(--primary);">${overallSim}%</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);"> overall match</span>
+        </div>
         <div class="reasons-list">${reasonsHtml}</div>
-        <h5>Feature Scores</h5>
+        <h5 style="margin: 0.5rem 0 0.25rem; font-size: 0.8rem;">Feature Breakdown</h5>
         <div class="feature-breakdown">${featureBars}</div>
     `;
 }
@@ -925,21 +984,28 @@ document.getElementById('closeComparisonBtn').addEventListener('click', () => {
 
 async function loadTrees() {
     const treeList = document.getElementById('treeList');
+    const treeCountBadge = document.getElementById('treeCountBadge');
     
     try {
         const response = await fetch(`${API_BASE}/trees`);
         if (!response.ok) throw new Error('Failed to load trees');
         
-        const trees = await response.json();
+        const data = await response.json();
+        const trees = data.trees || data;  // Handle both { trees: [...] } and [...] formats
         
-        if (trees.length === 0) {
+        // Update the tree count badge
+        if (treeCountBadge) {
+            treeCountBadge.textContent = `${trees?.length || 0} trees`;
+        }
+        
+        if (!trees || trees.length === 0) {
             treeList.innerHTML = `
                 <div class="empty-state">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M12 3v18M3 12h18M7 7l10 10M17 7L7 17"/>
                     </svg>
                     <h3>No trees yet</h3>
-                    <p>Add a tree using the Newick format above</p>
+                    <p>Add a tree using the form below</p>
                 </div>
             `;
             return;
@@ -990,10 +1056,54 @@ async function visualizeTree(treeId) {
     currentTreeId = treeId;
     
     try {
-        const response = await fetch(`${API_BASE}/trees/${treeId}/structure`);
-        if (!response.ok) throw new Error('Failed to load tree structure');
+        // Fetch tree info and nodes separately
+        const [treeResponse, nodesResponse, rootResponse] = await Promise.all([
+            fetch(`${API_BASE}/trees/${treeId}`),
+            fetch(`${API_BASE}/trees/${treeId}/nodes`),
+            fetch(`${API_BASE}/trees/${treeId}/root`)
+        ]);
         
-        treeData = await response.json();
+        if (!treeResponse.ok || !nodesResponse.ok || !rootResponse.ok) {
+            throw new Error('Failed to load tree structure');
+        }
+        
+        const treeInfo = await treeResponse.json();
+        const nodesData = await nodesResponse.json();
+        const rootNode = await rootResponse.json();
+        
+        // Build tree structure from nodes
+        const nodesMap = {};
+        const nodesList = nodesData.nodes || nodesData;
+        nodesList.forEach(node => {
+            nodesMap[node.id] = { ...node, children: [] };
+        });
+        
+        // Link children to parents
+        Object.values(nodesMap).forEach(node => {
+            if (node.left_child_id && nodesMap[node.left_child_id]) {
+                node.children.push(nodesMap[node.left_child_id]);
+            }
+            if (node.right_child_id && nodesMap[node.right_child_id]) {
+                node.children.push(nodesMap[node.right_child_id]);
+            }
+        });
+        
+        // Find root node (parent_id is null)
+        let rootNodeData = nodesMap[rootNode.id];
+        if (!rootNodeData) {
+            // Fallback: find the node with no parent
+            rootNodeData = Object.values(nodesMap).find(n => n.parent_id === null);
+        }
+        
+        if (!rootNodeData) {
+            throw new Error('Could not find root node');
+        }
+        
+        treeData = {
+            ...treeInfo,
+            root: rootNodeData,
+            nodes: nodesMap
+        };
         
         document.getElementById('currentTreeName').textContent = treeData.name;
         document.getElementById('treeVisualization').classList.remove('hidden');
@@ -1117,13 +1227,14 @@ document.getElementById('searchSelectedSubtreeBtn').addEventListener('click', as
         
         if (!response.ok) throw new Error('Search failed');
         
-        const results = await response.json();
+        const apiResponse = await response.json();
+        const resultsArray = apiResponse.results || apiResponse;
         
         // Populate the search input and show results
         document.getElementById('searchNewickInput').value = newick;
-        displayTreeSearchResults(results);
+        displayTreeSearchResults(apiResponse);
         
-        showToast(`Found ${results.length} similar trees!`, 'success');
+        showToast(`Found ${resultsArray.length} similar trees!`, 'success');
         
     } catch (error) {
         console.error('Subtree search error:', error);
@@ -1153,6 +1264,8 @@ function renderTree(root) {
     const links = [];
     
     function traverse(node, x, y, level, xSpan) {
+        if (!node) return;  // Safety check
+        
         nodes.push({
             id: node.id,
             name: node.name,
@@ -1164,7 +1277,7 @@ function renderTree(root) {
             sequenceId: node.sequence_id
         });
         
-        const children = node.children || [];
+        const children = (node.children || []).filter(c => c);  // Filter out undefined
         if (children.length > 0) {
             const childXSpan = xSpan / children.length;
             children.forEach((child, i) => {
@@ -1524,6 +1637,66 @@ async function updateStats() {
         }
     } catch (error) {
         console.error('Failed to update stats:', error);
+    }
+}
+
+// ============== Quick Start Guide ==============
+const dismissGuideBtn = document.getElementById('dismissGuide');
+const tryExampleBtn = document.getElementById('tryExampleBtn');
+const exampleNewick = document.getElementById('exampleNewick');
+const quickStartGuide = document.getElementById('quickStartGuide');
+
+// Check if guide was previously dismissed
+if (localStorage.getItem('guideDismissed') === 'true') {
+    if (quickStartGuide) quickStartGuide.style.display = 'none';
+}
+
+if (dismissGuideBtn) {
+    dismissGuideBtn.addEventListener('click', () => {
+        quickStartGuide.style.display = 'none';
+        localStorage.setItem('guideDismissed', 'true');
+    });
+}
+
+if (tryExampleBtn && exampleNewick) {
+    tryExampleBtn.addEventListener('click', () => {
+        const searchInput = document.getElementById('searchNewickInput');
+        if (searchInput) {
+            searchInput.value = exampleNewick.textContent;
+            searchInput.focus();
+            // Scroll to search section
+            document.getElementById('treeSearchSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Highlight the search section
+            const searchSection = document.querySelector('.tree-search-section');
+            if (searchSection) {
+                searchSection.classList.add('highlight-section');
+                setTimeout(() => searchSection.classList.remove('highlight-section'), 1000);
+            }
+            showToast('Example loaded! Click "Search Trees" to find similar trees.', 'info');
+        }
+    });
+}
+
+// Make example code clickable to copy
+if (exampleNewick) {
+    exampleNewick.addEventListener('click', () => {
+        const searchInput = document.getElementById('searchNewickInput');
+        if (searchInput) {
+            searchInput.value = exampleNewick.textContent;
+            showToast('Newick pattern copied to search!', 'success');
+        }
+    });
+}
+
+// ============== Auto-scroll Helper ==============
+function scrollToElement(elementId, highlight = true) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (highlight) {
+            element.classList.add('highlight-section');
+            setTimeout(() => element.classList.remove('highlight-section'), 1000);
+        }
     }
 }
 
